@@ -55,7 +55,7 @@ def play_random():
 
 def play_mcts():
     state = Connect4State()
-    mcts = AmafMCTS(state)
+    mcts = AmafMCTS(state) # mozna zamienic na MCTS(state) wtedy bedzie basic
 
     while not state.game_over():
         print("Current state:")
