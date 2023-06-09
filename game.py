@@ -3,6 +3,7 @@ import time
 
 from Connect4State import Connect4State
 from mcts import MCTS
+from mcts_amaf import AmafMCTS
 
 def main():
     print("Choose option:\n")
@@ -54,7 +55,7 @@ def play_random():
 
 def play_mcts():
     state = Connect4State()
-    mcts = MCTS(state)
+    mcts = AmafMCTS(state)
 
     while not state.game_over():
         print("Current state:")
