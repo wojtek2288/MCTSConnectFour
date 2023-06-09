@@ -3,9 +3,8 @@ import time
 import math
 from copy import deepcopy
 
-from ConnectState import ConnectState
+from Connect4State import Connect4State
 from meta import GameMeta, MCTSMeta
-
 
 class Node:
     def __init__(self, move, parent):
@@ -28,7 +27,7 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, state=ConnectState()):
+    def __init__(self, state=Connect4State()):
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
         self.run_time = 0
@@ -56,7 +55,7 @@ class MCTS:
 
         return node, state
 
-    def expand(self, parent: Node, state: ConnectState) -> bool:
+    def expand(self, parent: Node, state: Connect4State) -> bool:
         if state.game_over():
             return False
 
@@ -65,15 +64,13 @@ class MCTS:
 
         return True
 
-    def roll_out(self, state: ConnectState) -> int:
+    def roll_out(self, state: Connect4State) -> int:
         while not state.game_over():
             state.move(random.choice(state.get_legal_moves()))
 
         return state.get_outcome()
 
     def back_propagate(self, node: Node, turn: int, outcome: int) -> None:
-
-        # For the current player, not the next player
         reward = 0 if outcome == turn else 1
 
         while node is not None:
@@ -85,11 +82,11 @@ class MCTS:
             else:
                 reward = 1 - reward
 
-    def search(self, time_limit: int):
+    def search(self, num_interations: int = MCTSMeta.NUM_ITERATIONS):
         start_time = time.process_time()
 
         num_rollouts = 0
-        while time.process_time() - start_time < time_limit:
+        for _ in range(num_interations):
             node, state = self.select_node()
             outcome = self.roll_out(state)
             self.back_propagate(node, state.to_play, outcome)
@@ -99,7 +96,7 @@ class MCTS:
         self.run_time = run_time
         self.num_rollouts = num_rollouts
 
-    def best_move(self):
+    def get_best_move(self):
         if self.root_state.game_over():
             return -1
 

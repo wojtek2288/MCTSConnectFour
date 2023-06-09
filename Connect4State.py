@@ -1,9 +1,7 @@
 from copy import deepcopy
-import numpy as np
 from meta import GameMeta
 
-
-class ConnectState:
+class Connect4State:
     def __init__(self):
         self.board = [[0] * GameMeta.COLS for _ in range(GameMeta.ROWS)]
         self.to_play = GameMeta.PLAYERS['one']
@@ -29,10 +27,6 @@ class ConnectState:
 
     def check_win_from(self, row, col):
         player = self.board[row][col]
-        """
-        Last played action is at (row, col)
-        Check surrounding 7x7 grid for a win
-        """
 
         consecutive = 1
         # Check horizontal

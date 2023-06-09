@@ -10,3 +10,4 @@ class GameMeta:
 
 class MCTSMeta:
     EXPLORATION = math.sqrt(2)
+    NUM_ITERATIONS = 10000
