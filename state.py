@@ -1,31 +1,37 @@
-from meta import GameMeta
 import numpy as np
 
-NUM_OF_COLUMNS = 7
-NUM_OF_ROWS = 6
-PLAYER_ONE = 1
-PLAYER_TWO = 2
-BLANK = 0
+class GameResults:
+    ONGOING = 0
+    PLAYER_ONE_WON = 1
+    PLAYER_TWO_WON = 2
+    DRAW = 3
+
+class BoardConstants:
+    NUM_OF_COLUMNS = 7
+    NUM_OF_ROWS = 6
+    PLAYER_ONE = 1
+    PLAYER_TWO = 2
+    BLANK = 0
 
 class State:
     def __init__(self):
-        self.board = np.array([[BLANK] * NUM_OF_COLUMNS for _ in range(NUM_OF_ROWS)])
-        self.player_to_play = PLAYER_ONE
+        self.board = np.array([[BoardConstants.BLANK] * BoardConstants.NUM_OF_COLUMNS for _ in range(BoardConstants.NUM_OF_ROWS)])
+        self.player_to_play = BoardConstants.PLAYER_ONE
         self.last_row = -1
         self.last_column = -1
 
     def register_move(self, col):
-        row = [id for id, x in enumerate(self.board[:, col]) if x == BLANK][-1]
+        row = [id for id, x in enumerate(self.board[:, col]) if x == BoardConstants.BLANK][-1]
         self.board[row][col] = self.player_to_play
         self.player_to_play = self.get_last_player()
         self.last_row = row
         self.last_column = col
 
     def get_last_player(self):
-        return PLAYER_TWO if self.player_to_play == PLAYER_ONE else PLAYER_ONE
+        return BoardConstants.PLAYER_TWO if self.player_to_play == BoardConstants.PLAYER_ONE else BoardConstants.PLAYER_ONE
 
     def get_empty_columns(self):
-        return [id for id, col in enumerate(self.board[0]) if col == 0]
+        return [id for id, col in enumerate(self.board[0]) if col == BoardConstants.BLANK]
 
     def get_winning_player(self):
         if self.last_row != -1 and self.check_win_for_previous(self.last_row, self.last_column):
@@ -33,14 +39,14 @@ class State:
         return 0
     
     def game_over(self):
-            return self.get_winning_player() or len(self.get_empty_columns()) == 0
+        return self.get_winning_player() != 0 or len(self.get_empty_columns()) == 0
 
-    def get_outcome(self):
+    def get_game_result(self):
         winning_player = self.get_winning_player()
         if winning_player == 0 and len(self.get_empty_columns()) == 0:
-            return GameMeta.OUTCOMES['draw']
+            return GameResults.DRAW
 
-        return winning_player
+        return GameResults.PLAYER_ONE_WON if winning_player == BoardConstants.PLAYER_ONE else GameResults.PLAYER_TWO_WON
     
     def check_array(self, array, player):
         if(len(array) < 4):

@@ -1,4 +1,3 @@
-import time
 import math
 
 from state import State
@@ -33,17 +32,10 @@ class AmafMCTS(MCTS):
         node.AMAF[move]['Q'] += outcome
 
     def search(self, num_interations: int = Constants.NUMBER_OF_ITERATIONS):
-        start_time = time.process_time()
-
-        num_rollouts = 0
         for _ in range(num_interations):
-            node, state = self.select_node()
-            outcome = self.roll_out(state)
+            node, state = self.select()
+            outcome = self.simulate(state)
             self.back_propagate(node, state.player_to_play, outcome)
             self.update_amaf_stats(self.root, node.move, outcome)
-            num_rollouts += 1
 
-        run_time = time.process_time() - start_time
-        self.run_time = run_time
-        self.num_rollouts = num_rollouts
 

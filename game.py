@@ -1,3 +1,5 @@
+import time
+
 from state import State
 from mcts import MCTS
 from mcts_amaf import AmafMCTS
@@ -27,7 +29,13 @@ def start_game(algorithm):
             print("Player one won!")
             break
 
+        start = time.process_time()
+
         algorithm_move = algorithm.move_next()
+
+        move_time = time.process_time() - start
+
+        print(f'Algorithm move time: {move_time}s')
 
         state.register_move(algorithm_move)
 

@@ -1,10 +1,8 @@
 import random
-import time
 import math
 from copy import deepcopy
 
-from state import State
-from meta import GameMeta
+from state import State, GameResults
 
 class Constants:
     NUMBER_OF_ITERATIONS = 10000
@@ -18,38 +16,28 @@ class Node:
         self.N = 0
         self.Q = 0
         self.children = {}
-        self.outcome = GameMeta.PLAYERS['none']
 
     def add_children(self, children: dict):
         for child in children:
             self.children[child.move] = child
 
-    def value(self):
-        if self.N == 0:
-            return 0 if Constants.EXPLORATION_COEFFICIENT == 0 else float('inf')
-        else:
-            return self.Q / self.N + Constants.EXPLORATION_COEFFICIENT * math.sqrt(math.log(self.parent.N) / self.N)
+    def UCT(self):
+        return Constants.INF if self.N == 0 else self.Q / self.N + Constants.EXPLORATION_COEFFICIENT * math.sqrt(math.log(self.parent.N) / self.N)
 
 
 class MCTS:
     def __init__(self, state=State()):
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
-        self.run_time = 0
         self.node_count = 0
-        self.num_rollouts = 0
         self.node_type = Node
 
-    def select_node(self) -> tuple:
+    def select(self):
         node = self.root
         state = deepcopy(self.root_state)
 
         while len(node.children) != 0:
-            children = node.children.values()
-            max_value = max(children, key=lambda n: n.value()).value()
-            max_nodes = [n for n in children if n.value() == max_value]
-
-            node = random.choice(max_nodes)
+            node = self.get_best_child(node)
             state.register_move(node.move)
 
             if node.N == 0:
@@ -60,6 +48,11 @@ class MCTS:
             state.register_move(node.move)
 
         return node, state
+    
+    def get_best_child(self, node):
+        children = node.children.values()
+        max_value = max(children, key=lambda n: n.UCT()).UCT()
+        return random.choice([n for n in children if n.UCT() == max_value])
 
     def expand(self, parent: Node, state: State) -> bool:
         if state.game_over():
@@ -70,11 +63,11 @@ class MCTS:
 
         return True
 
-    def roll_out(self, state: State):
+    def simulate(self, state: State):
         while not state.game_over():
             state.register_move(random.choice(state.get_empty_columns()))
 
-        return state.get_outcome()
+        return state.get_game_result()
 
     def back_propagate(self, node: Node, turn: int, outcome: int):
         reward = 0 if outcome == turn else 1
@@ -83,31 +76,16 @@ class MCTS:
             node.N += 1
             node.Q += reward
             node = node.parent
-            if outcome == GameMeta.OUTCOMES['draw']:
+            if outcome == GameResults.DRAW:
                 reward = 0
             else:
                 reward = 1 - reward
 
-    def search(self, num_interations: int = Constants.NUMBER_OF_ITERATIONS):
-        start_time = time.process_time()
-
-        num_rollouts = 0
-        for _ in range(num_interations):
-            node, state = self.select_node()
-            outcome = self.roll_out(state)
+    def search(self):
+        for _ in range(Constants.NUMBER_OF_ITERATIONS):
+            node, state = self.select()
+            outcome = self.simulate(state)
             self.back_propagate(node, state.to_play, outcome)
-            num_rollouts += 1
-
-        run_time = time.process_time() - start_time
-        self.run_time = run_time
-        self.num_rollouts = num_rollouts
-
-    def get_best_move(self):
-        max_value = max(self.root.children.values(), key=lambda n: n.N).N
-        max_nodes = [n for n in self.root.children.values() if n.N == max_value]
-        best_child = random.choice(max_nodes)
-
-        return best_child.move
 
     def register_move(self, move):
         if move in self.root.children:
@@ -120,11 +98,7 @@ class MCTS:
 
     def move_next(self):
         self.search()
-        num_rollouts, run_time = self.statistics()
-        print("Statistics: ", num_rollouts, "rollouts in", run_time, "seconds")
-        move = self.get_best_move()
+        move = self.get_best_child(self.root).move
         self.register_move(move)
         return move
 
-    def statistics(self) -> tuple:
-        return self.num_rollouts, self.run_time
