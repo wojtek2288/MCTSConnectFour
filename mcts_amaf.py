@@ -4,28 +4,13 @@ import math
 from copy import deepcopy
 
 from Connect4State import Connect4State
-from mcts import MCTS
+from mcts import MCTS, Node
 from meta import GameMeta, MCTSMeta
 
-class AmafNode:
+class AmafNode(Node):
     def __init__(self, move, parent):
-        self.move = move
-        self.parent = parent
-        self.N = 0
-        self.Q = 0
+        super().__init__(move, parent)
         self.AMAF = {}
-        self.children = {}
-        self.outcome = GameMeta.PLAYERS['none']
-
-    def add_children(self, children: dict) -> None:
-        for child in children:
-            self.children[child.move] = child
-
-    def value(self, explore: float = MCTSMeta.EXPLORATION):
-        if self.N == 0:
-            return 0 if explore == 0 else GameMeta.INF
-        else:
-            return (self.Q / self.N) + explore * math.sqrt(math.log(self.parent.N) / self.N)
 
     def amaf_value(self):
         if self.move in self.AMAF:
@@ -40,61 +25,8 @@ class AmafNode:
 class AmafMCTS(MCTS):
     def __init__(self, state=Connect4State()):
         super().__init__(state)
-        #self.root_state = deepcopy(state)
         self.root = AmafNode(None, None)
-        #self.run_time = 0
-        #self.node_count = 0
-        #self.num_rollouts = 0
-
-    def select_node(self) -> tuple:
-        node = self.root
-        state = deepcopy(self.root_state)
-
-        while len(node.children) != 0:
-            children = node.children.values()
-            max_child = max(children, key=lambda n: n.value() + n.amaf_value())
-
-            max_value = max_child.value() + max_child.amaf_value()
-            max_nodes = [n for n in children if n.value() + n.amaf_value() == max_value]
-
-            node = random.choice(max_nodes)
-            state.register_move(node.move)
-
-            if node.N == 0:
-                return node, state
-
-        if self.expand(node, state):
-            node = random.choice(list(node.children.values()))
-            state.register_move(node.move)
-
-        return node, state
-
-    def expand(self, parent: AmafNode, state: Connect4State) -> bool:
-        if state.game_over():
-            return False
-
-        children = [AmafNode(move, parent) for move in state.get_legal_moves()]
-        parent.add_children(children)
-
-        return True
-
-    def roll_out(self, state: Connect4State) -> int:
-        while not state.game_over():
-            state.register_move(random.choice(state.get_legal_moves()))
-
-        return state.get_outcome()
-
-    def back_propagate(self, node: AmafNode, turn: int, outcome: int):
-        reward = 0 if outcome == turn else 1
-
-        while node is not None:
-            node.N += 1
-            node.Q += reward
-            node = node.parent
-            if outcome == GameMeta.OUTCOMES['draw']:
-                reward = 0
-            else:
-                reward = 1 - reward
+        self.node_type = AmafNode
 
     def update_amaf_stats(self, node: AmafNode, move: int, outcome: int):
         if move not in node.AMAF:
@@ -118,24 +50,3 @@ class AmafMCTS(MCTS):
         self.run_time = run_time
         self.num_rollouts = num_rollouts
 
-    def get_best_move(self):
-        if self.root_state.game_over():
-            return -1
-
-        max_value = max(self.root.children.values(), key=lambda n: n.N).N
-        max_nodes = [n for n in self.root.children.values() if n.N == max_value]
-        best_child = random.choice(max_nodes)
-
-        return best_child.move
-
-    def register_move(self, move):
-        if move in self.root.children:
-            self.root_state.register_move(move)
-            self.root = self.root.children[move]
-            return
-
-        self.root_state.register_move(move)
-        self.root = AmafNode(None, None)
-
-    def statistics(self) -> tuple:
-        return self.num_rollouts, self.run_time

@@ -33,6 +33,7 @@ class MCTS:
         self.run_time = 0
         self.node_count = 0
         self.num_rollouts = 0
+        self.node_type = Node
 
     def select_node(self) -> tuple:
         node = self.root
@@ -59,7 +60,7 @@ class MCTS:
         if state.game_over():
             return False
 
-        children = [Node(move, parent) for move in state.get_legal_moves()]
+        children = [self.node_type(move, parent) for move in state.get_legal_moves()]
         parent.add_children(children)
 
         return True
@@ -110,7 +111,7 @@ class MCTS:
             return
 
         self.root_state.register_move(move)
-        self.root = Node(None, None)
+        self.root = self.node_type(None, None)
 
     def move_next(self):
         self.search()
