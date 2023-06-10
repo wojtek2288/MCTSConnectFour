@@ -12,6 +12,7 @@ def start_game(algorithm):
 
         while True:
             move = int(input("Enter a column number to move: "))
+            move -= 1
             if move in state.get_empty_columns():
                 break
             else:

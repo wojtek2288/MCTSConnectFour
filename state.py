@@ -1,26 +1,46 @@
 from meta import GameMeta
 import numpy as np
 
+NUM_OF_COLUMNS = 7
+NUM_OF_ROWS = 6
+PLAYER_ONE = 1
+PLAYER_TWO = 2
+BLANK = 0
+
 class State:
     def __init__(self):
-        self.board = np.array([[0] * GameMeta.COLS for _ in range(GameMeta.ROWS)])
-        self.to_play = GameMeta.PLAYERS['one']
-        self.height = [GameMeta.ROWS - 1] * GameMeta.COLS
-        self.last_played = []
+        self.board = np.array([[BLANK] * NUM_OF_COLUMNS for _ in range(NUM_OF_ROWS)])
+        self.player_to_play = PLAYER_ONE
+        self.last_row = -1
+        self.last_column = -1
 
     def register_move(self, col):
-        self.board[self.height[col]][col] = self.to_play
-        self.last_played = [self.height[col], col]
-        self.height[col] -= 1
-        self.to_play = GameMeta.PLAYERS['two'] if self.to_play == GameMeta.PLAYERS['one'] else GameMeta.PLAYERS['one']
+        row = [id for id, x in enumerate(self.board[:, col]) if x == BLANK][-1]
+        self.board[row][col] = self.player_to_play
+        self.player_to_play = self.get_last_player()
+        self.last_row = row
+        self.last_column = col
+
+    def get_last_player(self):
+        return PLAYER_TWO if self.player_to_play == PLAYER_ONE else PLAYER_ONE
 
     def get_empty_columns(self):
         return [id for id, col in enumerate(self.board[0]) if col == 0]
 
-    def check_win(self):
-        if len(self.last_played) > 0 and self.check_win_from(self.last_played[0], self.last_played[1]):
-            return self.board[self.last_played[0]][self.last_played[1]]
+    def get_winning_player(self):
+        if self.last_row != -1 and self.check_win_for_previous(self.last_row, self.last_column):
+            return self.get_last_player()
         return 0
+    
+    def game_over(self):
+            return self.get_winning_player() or len(self.get_empty_columns()) == 0
+
+    def get_outcome(self):
+        winning_player = self.get_winning_player()
+        if winning_player == 0 and len(self.get_empty_columns()) == 0:
+            return GameMeta.OUTCOMES['draw']
+
+        return winning_player
     
     def check_array(self, array, player):
         if(len(array) < 4):
@@ -35,7 +55,7 @@ class State:
                 return True
         return False
 
-    def check_win_from(self, row, col):
+    def check_win_for_previous(self, row, col):
         player = self.board[row][col]
 
         # row
@@ -56,18 +76,9 @@ class State:
 
         return False
 
-    def game_over(self):
-        return self.check_win() or len(self.get_empty_columns()) == 0
-
-    def get_outcome(self):
-        if len(self.get_empty_columns()) == 0 and self.check_win() == 0:
-            return GameMeta.OUTCOMES['draw']
-
-        return GameMeta.OUTCOMES['one'] if self.check_win() == GameMeta.PLAYERS['one'] else GameMeta.OUTCOMES['two']
-
     def print_state(self):
         print('=' * 29)
-        for x in range(7):
+        for x in range(1, 8):
             print(f'| {x}', end=' ')
         
         print('|')

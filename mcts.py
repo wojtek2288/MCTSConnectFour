@@ -4,7 +4,12 @@ import math
 from copy import deepcopy
 
 from state import State
-from meta import GameMeta, MCTSMeta
+from meta import GameMeta
+
+class Constants:
+    NUMBER_OF_ITERATIONS = 10000
+    EXPLORATION_COEFFICIENT = math.sqrt(2)
+    INF = float('inf')
 
 class Node:
     def __init__(self, move, parent):
@@ -19,11 +24,11 @@ class Node:
         for child in children:
             self.children[child.move] = child
 
-    def value(self, explore: float = MCTSMeta.EXPLORATION):
+    def value(self):
         if self.N == 0:
-            return 0 if explore == 0 else GameMeta.INF
+            return 0 if Constants.EXPLORATION_COEFFICIENT == 0 else float('inf')
         else:
-            return self.Q / self.N + explore * math.sqrt(math.log(self.parent.N) / self.N)
+            return self.Q / self.N + Constants.EXPLORATION_COEFFICIENT * math.sqrt(math.log(self.parent.N) / self.N)
 
 
 class MCTS:
@@ -65,7 +70,7 @@ class MCTS:
 
         return True
 
-    def roll_out(self, state: State) -> int:
+    def roll_out(self, state: State):
         while not state.game_over():
             state.register_move(random.choice(state.get_empty_columns()))
 
@@ -83,7 +88,7 @@ class MCTS:
             else:
                 reward = 1 - reward
 
-    def search(self, num_interations: int = MCTSMeta.NUM_ITERATIONS):
+    def search(self, num_interations: int = Constants.NUMBER_OF_ITERATIONS):
         start_time = time.process_time()
 
         num_rollouts = 0
