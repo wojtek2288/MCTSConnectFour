@@ -78,7 +78,7 @@ def computer_vs_computer(algorithm1, algorithm2):
 
 if __name__ == "__main__":
     random.seed(1010)
-    computer_vs_computer(AmafMCTS, MCTS)
+    computer_vs_computer(AmafMCTS, AmafMCTS)
     # modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS]]
     # for id, mode in enumerate(modes):
     #     print(f'{id + 1}. {mode[0]}')

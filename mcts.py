@@ -69,23 +69,22 @@ class MCTS:
 
         return state.get_game_result()
 
-    def back_propagate(self, node: Node, turn: int, outcome: int):
-        reward = 0 if outcome == turn else 1
+    def back_propagate(self, node: Node, state: State, outcome: int):
+        update_reward = outcome == GameResults.DRAW
+        reward = 0 if outcome == state.player_to_play else 1 # the player to play is the one who lost
 
         while node is not None:
             node.N += 1
-            node.Q += reward
-            node = node.parent
-            if outcome == GameResults.DRAW:
-                reward = 0
-            else:
+            if update_reward:    # we treat draws as a loss for both players
+                node.Q += reward
                 reward = 1 - reward
+            node = node.parent
 
     def search(self):
         for _ in range(Constants.NUMBER_OF_ITERATIONS):
             node, state = self.select()
             outcome = self.simulate(state)
-            self.back_propagate(node, state.player_to_play, outcome)
+            self.back_propagate(node, state, outcome)
 
     def register_move(self, move):
         if move in self.root.children:
