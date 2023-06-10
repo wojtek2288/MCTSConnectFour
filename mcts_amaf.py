@@ -57,8 +57,8 @@ class AmafMCTS(MCTS):
         node.AMAF[move]['N'] += 1
         node.AMAF[move]['Q'] += outcome
 
-    def search(self, num_interations: int = Constants.NUMBER_OF_ITERATIONS):
-        for _ in range(num_interations):
+    def search(self, num_iterations: int = Constants.NUMBER_OF_ITERATIONS):
+        for _ in range(num_iterations):
             node, state = self.select()
             outcome = self.simulate(state)
             self.back_propagate(node, state, outcome)

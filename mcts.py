@@ -5,7 +5,7 @@ from copy import deepcopy
 from state import State, GameResults
 
 class Constants:
-    NUMBER_OF_ITERATIONS = 10000
+    NUMBER_OF_ITERATIONS = 100000
     EXPLORATION_COEFFICIENT = math.sqrt(2)
     INF = float('inf')
 
@@ -69,16 +69,17 @@ class MCTS:
 
         return state.get_game_result()
 
-    def back_propagate(self, node: Node, state: State, outcome: int):
-        update_reward = outcome == GameResults.DRAW
-        reward = 0 if outcome == state.player_to_play else 1 # the player to play is the one who lost
+    def back_propagate(self, node: Node, turn: int, outcome: int):
+        reward = 0 if outcome == turn else 1
 
         while node is not None:
             node.N += 1
-            if update_reward:    # we treat draws as a loss for both players
-                node.Q += reward
-                reward = 1 - reward
+            node.Q += reward
             node = node.parent
+            if outcome == GameResults.DRAW:
+                reward = 0
+            else:
+                reward = 1 - reward
 
     def search(self):
         for _ in range(Constants.NUMBER_OF_ITERATIONS):
