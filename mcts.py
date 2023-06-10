@@ -60,14 +60,14 @@ class MCTS:
         if state.game_over():
             return False
 
-        children = [self.node_type(move, parent) for move in state.get_legal_moves()]
+        children = [self.node_type(move, parent) for move in state.get_empty_columns()]
         parent.add_children(children)
 
         return True
 
     def roll_out(self, state: Connect4State) -> int:
         while not state.game_over():
-            state.register_move(random.choice(state.get_legal_moves()))
+            state.register_move(random.choice(state.get_empty_columns()))
 
         return state.get_outcome()
 

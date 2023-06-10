@@ -12,7 +12,7 @@ def start_game(algorithm):
 
         while True:
             move = int(input("Enter a column number to move: "))
-            if move in state.get_legal_moves():
+            if move in state.get_empty_columns():
                 break
             else:
                 print("Please input a legal move.")
