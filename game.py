@@ -1,9 +1,9 @@
-from Connect4State import Connect4State
+from state import State
 from mcts import MCTS
 from mcts_amaf import AmafMCTS
 
 def start_game(algorithm):
-    state = Connect4State()
+    state = State()
     algorithm = algorithm(state)
 
     while not state.game_over():

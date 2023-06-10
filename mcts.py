@@ -3,7 +3,7 @@ import time
 import math
 from copy import deepcopy
 
-from Connect4State import Connect4State
+from state import State
 from meta import GameMeta, MCTSMeta
 
 class Node:
@@ -27,7 +27,7 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, state=Connect4State()):
+    def __init__(self, state=State()):
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
         self.run_time = 0
@@ -56,7 +56,7 @@ class MCTS:
 
         return node, state
 
-    def expand(self, parent: Node, state: Connect4State) -> bool:
+    def expand(self, parent: Node, state: State) -> bool:
         if state.game_over():
             return False
 
@@ -65,7 +65,7 @@ class MCTS:
 
         return True
 
-    def roll_out(self, state: Connect4State) -> int:
+    def roll_out(self, state: State) -> int:
         while not state.game_over():
             state.register_move(random.choice(state.get_empty_columns()))
 

@@ -1,11 +1,9 @@
-import random
 import time
 import math
-from copy import deepcopy
 
-from Connect4State import Connect4State
+from state import State
 from mcts import MCTS, Node
-from meta import GameMeta, MCTSMeta
+from meta import MCTSMeta
 
 class AmafNode(Node):
     def __init__(self, move, parent):
@@ -23,7 +21,7 @@ class AmafNode(Node):
             return 0
 
 class AmafMCTS(MCTS):
-    def __init__(self, state=Connect4State()):
+    def __init__(self, state=State()):
         super().__init__(state)
         self.root = AmafNode(None, None)
         self.node_type = AmafNode

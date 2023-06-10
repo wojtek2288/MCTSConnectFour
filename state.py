@@ -1,8 +1,7 @@
-from copy import deepcopy
 from meta import GameMeta
 import numpy as np
 
-class Connect4State:
+class State:
     def __init__(self):
         self.board = np.array([[0] * GameMeta.COLS for _ in range(GameMeta.ROWS)])
         self.to_play = GameMeta.PLAYERS['one']
