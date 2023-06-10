@@ -85,7 +85,7 @@ class MCTS:
         for _ in range(Constants.NUMBER_OF_ITERATIONS):
             node, state = self.select()
             outcome = self.simulate(state)
-            self.back_propagate(node, state.to_play, outcome)
+            self.back_propagate(node, state.player_to_play, outcome)
 
     def register_move(self, move):
         if move in self.root.children:
