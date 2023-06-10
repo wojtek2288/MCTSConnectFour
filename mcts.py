@@ -5,7 +5,7 @@ from copy import deepcopy
 from state import State, GameResults
 
 class Constants:
-    NUMBER_OF_ITERATIONS = 100000
+    NUMBER_OF_ITERATIONS = 10000
     EXPLORATION_COEFFICIENT = math.sqrt(2)
     INF = float('inf')
 
@@ -26,11 +26,12 @@ class Node:
 
 
 class MCTS:
-    def __init__(self, state=State()):
+    def __init__(self, state=State(), seed = 1):
         self.root_state = deepcopy(state)
         self.root = Node(None, None)
         self.node_count = 0
         self.node_type = Node
+        self.random = random.Random(seed)
 
     def select(self):
         node = self.root
@@ -44,7 +45,7 @@ class MCTS:
                 return node, state
 
         if self.expand(node, state):
-            node = random.choice(list(node.children.values()))
+            node = self.random.choice(list(node.children.values()))
             state.register_move(node.move)
 
         return node, state
@@ -52,7 +53,7 @@ class MCTS:
     def get_best_child(self, node):
         children = node.children.values()
         max_value = max(children, key=lambda n: n.UCT()).UCT()
-        return random.choice([n for n in children if n.UCT() == max_value])
+        return self.random.choice([n for n in children if n.UCT() == max_value])
 
     def expand(self, parent: Node, state: State) -> bool:
         if state.game_over():
@@ -65,7 +66,7 @@ class MCTS:
 
     def simulate(self, state: State):
         while not state.game_over():
-            state.register_move(random.choice(state.get_empty_columns()))
+            state.register_move(self.random.choice(state.get_empty_columns()))
 
         return state.get_game_result()
 

@@ -21,8 +21,8 @@ class AmafNode(Node):
             return 0
 
 class AmafMCTS(MCTS):
-    def __init__(self, state=State()):
-        super().__init__(state)
+    def __init__(self, state=State(), seed=1):
+        super().__init__(state, seed)
         self.root = AmafNode(None, None)
         self.node_type = AmafNode
 
@@ -38,14 +38,14 @@ class AmafMCTS(MCTS):
             max_value = max_child.UCT() + max_child.amaf_value()
             max_nodes = [n for n in children if n.UCT() + n.amaf_value() == max_value]
 
-            node = random.choice(max_nodes)
+            node = self.random.choice(max_nodes)
             state.register_move(node.move)
 
             if node.N == 0:
                 return node, state
 
         if self.expand(node, state):
-            node = random.choice(list(node.children.values()))
+            node = self.random.choice(list(node.children.values()))
             state.register_move(node.move)
 
         return node, state

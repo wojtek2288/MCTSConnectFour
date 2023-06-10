@@ -1,5 +1,9 @@
 import time
 import random
+import itertools
+import multiprocessing
+
+from mcts_mvasap import MvasapMCTS
 
 from state import State
 from mcts import MCTS
@@ -47,10 +51,10 @@ def player_vs_computer(algorithm):
             print("Player two won!")
             break
 
-def computer_vs_computer(algorithm1, algorithm2):
+def computer_vs_computer(algorithm1, algorithm2, seed):
     state = State()
-    algorithm1 = algorithm1(state)
-    algorithm2 = algorithm2(state)
+    algorithm1 = algorithm1(state, seed)
+    algorithm2 = algorithm2(state, seed)
 
     while not state.game_over():
         state.print_state()
@@ -63,7 +67,7 @@ def computer_vs_computer(algorithm1, algorithm2):
 
         if state.game_over():
             print("Player one won!")
-            break
+            return 1
 
         move2 = algorithm2.move_next()
         state.register_move(move2)
@@ -74,11 +78,43 @@ def computer_vs_computer(algorithm1, algorithm2):
         if state.game_over():
             state.print_state()
             print("Player two won!")
-            break
+            return 2
+    return 3
+
+def welcome_to_the_grand_tournament_champion():
+    competitors = [MCTS, MvasapMCTS, AmafMCTS]
+
+    pairings = list(itertools.combinations(competitors, 2))
+    pairings = pairings + [[y, x] for [x, y] in pairings]
+    pairings = [[pairing[0], pairing[1], id] for id, pairing in enumerate(pairings)]
+    results = []
+
+    with multiprocessing.Pool() as pool:
+        for result in pool.imap(run_pairing, pairings):
+            results.append(result)
+
+    print('\n===========RESULTS===========')
+    for result in results:
+        print(result)
+
+def run_pairing(pairing):
+    number_of_rounds = 10
+    res_1 = 0
+    res_2 = 0
+    res_3 = 0
+    for i in range(number_of_rounds):
+        res = computer_vs_computer(pairing[0], pairing[1], i + pairing[2])
+        if res == 1:
+            res_1 += 1
+        elif res == 2:
+            res_2 += 1
+        else:
+            res_3 += 1
+    return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3}'
 
 if __name__ == "__main__":
-    random.seed(1010)
-    computer_vs_computer(MCTS, MCTS)
+    welcome_to_the_grand_tournament_champion()
+    #computer_vs_computer(MCTS, MvasapMCTS)
 
     # modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS]]
     # for id, mode in enumerate(modes):
