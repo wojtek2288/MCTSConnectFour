@@ -1,15 +1,13 @@
 from copy import deepcopy
 from meta import GameMeta
+import numpy as np
 
 class Connect4State:
     def __init__(self):
-        self.board = [[0] * GameMeta.COLS for _ in range(GameMeta.ROWS)]
+        self.board = np.array([[0] * GameMeta.COLS for _ in range(GameMeta.ROWS)])
         self.to_play = GameMeta.PLAYERS['one']
         self.height = [GameMeta.ROWS - 1] * GameMeta.COLS
         self.last_played = []
-
-    # def get_board(self):
-    #     return deepcopy(self.board)
 
     def register_move(self, col):
         self.board[self.height[col]][col] = self.to_play
@@ -17,88 +15,53 @@ class Connect4State:
         self.height[col] -= 1
         self.to_play = GameMeta.PLAYERS['two'] if self.to_play == GameMeta.PLAYERS['one'] else GameMeta.PLAYERS['one']
 
-    def get_legal_moves(self):
-        return [col for col in range(GameMeta.COLS) if self.board[0][col] == 0]
+    def get_empty_columns(self):
+        return [id for id, col in enumerate(self.board[0]) if col == 0]
 
     def check_win(self):
         if len(self.last_played) > 0 and self.check_win_from(self.last_played[0], self.last_played[1]):
             return self.board[self.last_played[0]][self.last_played[1]]
         return 0
+    
+    def check_array(self, array, player):
+        if(len(array) < 4):
+            return False
+        count = 0
+        for x in array:
+            if x == player:
+                count += 1
+            else:
+                count = 0
+            if count >= 4:
+                return True
+        return False
 
     def check_win_from(self, row, col):
         player = self.board[row][col]
 
-        consecutive = 1
-        # Check horizontal
-        tmprow = row
-        while tmprow + 1 < GameMeta.ROWS and self.board[tmprow + 1][col] == player:
-            consecutive += 1
-            tmprow += 1
-        tmprow = row
-        while tmprow - 1 >= 0 and self.board[tmprow - 1][col] == player:
-            consecutive += 1
-            tmprow -= 1
-
-        if consecutive >= 4:
+        # row
+        if self.check_array(self.board[row], player):
             return True
 
-        # Check vertical
-        consecutive = 1
-        tmpcol = col
-        while tmpcol + 1 < GameMeta.COLS and self.board[row][tmpcol + 1] == player:
-            consecutive += 1
-            tmpcol += 1
-        tmpcol = col
-        while tmpcol - 1 >= 0 and self.board[row][tmpcol - 1] == player:
-            consecutive += 1
-            tmpcol -= 1
-
-        if consecutive >= 4:
+        # column
+        if self.check_array(self.board[:, col], player):
             return True
 
-        # Check diagonal
-        consecutive = 1
-        tmprow = row
-        tmpcol = col
-        while tmprow + 1 < GameMeta.ROWS and tmpcol + 1 < GameMeta.COLS and self.board[tmprow + 1][tmpcol + 1] == player:
-            consecutive += 1
-            tmprow += 1
-            tmpcol += 1
-        tmprow = row
-        tmpcol = col
-        while tmprow - 1 >= 0 and tmpcol - 1 >= 0 and self.board[tmprow - 1][tmpcol - 1] == player:
-            consecutive += 1
-            tmprow -= 1
-            tmpcol -= 1
-
-        if consecutive >= 4:
+        # diagonal
+        if self.check_array(self.board.diagonal(offset=col - row), player):
             return True
-
-        # Check anti-diagonal
-        consecutive = 1
-        tmprow = row
-        tmpcol = col
-        while tmprow + 1 < GameMeta.ROWS and tmpcol - 1 >= 0 and self.board[tmprow + 1][tmpcol - 1] == player:
-            consecutive += 1
-            tmprow += 1
-            tmpcol -= 1
-        tmprow = row
-        tmpcol = col
-        while tmprow - 1 >= 0 and tmpcol + 1 < GameMeta.COLS and self.board[tmprow - 1][tmpcol + 1] == player:
-            consecutive += 1
-            tmprow -= 1
-            tmpcol += 1
-
-        if consecutive >= 4:
+        
+        # antidiagonal
+        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), player):
             return True
 
         return False
 
     def game_over(self):
-        return self.check_win() or len(self.get_legal_moves()) == 0
+        return self.check_win() or len(self.get_empty_columns()) == 0
 
     def get_outcome(self):
-        if len(self.get_legal_moves()) == 0 and self.check_win() == 0:
+        if len(self.get_empty_columns()) == 0 and self.check_win() == 0:
             return GameMeta.OUTCOMES['draw']
 
         return GameMeta.OUTCOMES['one'] if self.check_win() == GameMeta.PLAYERS['one'] else GameMeta.OUTCOMES['two']
