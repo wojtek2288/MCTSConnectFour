@@ -1,96 +1,50 @@
-import random
-import time
-
 from Connect4State import Connect4State
 from mcts import MCTS
 from mcts_amaf import AmafMCTS
 
-def main():
-    print("Choose option:\n")
-    print("1. Play against MCTS AI")
-    print("2. Play against random AI")
-
-    option = int(input("Enter option:"))
-    while option != 1 and option != 2:
-        print("Illegal option")
-        option = int(input("Enter option: "))
-
-    if option == 1:
-        play_mcts()
-    elif option == 2:
-        play_random()
-
-def play_random():
+def start_game(algorithm):
     state = Connect4State()
+    algorithm = algorithm(state)
 
     while not state.game_over():
         print("Current state:")
-        state.print()
+        state.print_state()
 
-        user_move = int(input("Enter a move: "))
-        while user_move not in state.get_legal_moves():
-            print("Illegal move")
-            user_move = int(input("Enter a move: "))
+        while True:
+            move = int(input("Enter a column number to move: "))
+            if move in state.get_legal_moves():
+                break
+            else:
+                print("Please input a legal move.")
 
-        state.move(user_move)
+        state.register_move(move)
+        algorithm.register_move(move)
 
-        state.print()
+        state.print_state()
 
         if state.game_over():
             print("Player one won!")
             break
 
-        print("Thinking...")
-        time.sleep(2)
-        move = random.choice(state.get_legal_moves())
+        algorithm_move = algorithm.move_next()
 
-        print("Random AI choose move: ", move)
+        state.register_move(algorithm_move)
 
-        state.move(move)
+        print("Opponent's move choice: ", algorithm_move)
 
         if state.game_over():
-            state.print()
-            print("Player two won!")
-            break
-
-def play_mcts():
-    state = Connect4State()
-    mcts = AmafMCTS(state) # mozna zamienic na MCTS(state) wtedy bedzie basic
-
-    while not state.game_over():
-        print("Current state:")
-        state.print()
-
-        user_move = int(input("Enter a move: "))
-        while user_move not in state.get_legal_moves():
-            print("Illegal move")
-            user_move = int(input("Enter a move: "))
-
-        state.move(user_move)
-        mcts.move(user_move)
-
-        state.print()
-
-        if state.game_over():
-            print("Player one won!")
-            break
-
-        print("Thinking...")
-
-        mcts.search()
-        num_rollouts, run_time = mcts.statistics()
-        print("Statistics: ", num_rollouts, "rollouts in", run_time, "seconds")
-        move = mcts.get_best_move()
-
-        print("MCTS AI choose move: ", move)
-
-        state.move(move)
-        mcts.move(move)
-
-        if state.game_over():
-            state.print()
+            state.print_state()
             print("Player two won!")
             break
 
 if __name__ == "__main__":
-    main()
+    modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS]]
+    for id, mode in enumerate(modes):
+        print(f'{id + 1}. {mode[0]}')
+
+    choice = int(input("Please choose game mode: "))
+
+    if choice not in range(len(modes) + 1):
+        print("Incorrect game mode selected. Exiting.")
+    
+    start_game(modes[choice - 1][1])

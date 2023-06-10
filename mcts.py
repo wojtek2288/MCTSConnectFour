@@ -15,7 +15,7 @@ class Node:
         self.children = {}
         self.outcome = GameMeta.PLAYERS['none']
 
-    def add_children(self, children: dict) -> None:
+    def add_children(self, children: dict):
         for child in children:
             self.children[child.move] = child
 
@@ -44,14 +44,14 @@ class MCTS:
             max_nodes = [n for n in children if n.value() == max_value]
 
             node = random.choice(max_nodes)
-            state.move(node.move)
+            state.register_move(node.move)
 
             if node.N == 0:
                 return node, state
 
         if self.expand(node, state):
             node = random.choice(list(node.children.values()))
-            state.move(node.move)
+            state.register_move(node.move)
 
         return node, state
 
@@ -66,11 +66,11 @@ class MCTS:
 
     def roll_out(self, state: Connect4State) -> int:
         while not state.game_over():
-            state.move(random.choice(state.get_legal_moves()))
+            state.register_move(random.choice(state.get_legal_moves()))
 
         return state.get_outcome()
 
-    def back_propagate(self, node: Node, turn: int, outcome: int) -> None:
+    def back_propagate(self, node: Node, turn: int, outcome: int):
         reward = 0 if outcome == turn else 1
 
         while node is not None:
@@ -97,23 +97,28 @@ class MCTS:
         self.num_rollouts = num_rollouts
 
     def get_best_move(self):
-        if self.root_state.game_over():
-            return -1
-
         max_value = max(self.root.children.values(), key=lambda n: n.N).N
         max_nodes = [n for n in self.root.children.values() if n.N == max_value]
         best_child = random.choice(max_nodes)
 
         return best_child.move
 
-    def move(self, move):
+    def register_move(self, move):
         if move in self.root.children:
-            self.root_state.move(move)
+            self.root_state.register_move(move)
             self.root = self.root.children[move]
             return
 
-        self.root_state.move(move)
+        self.root_state.register_move(move)
         self.root = Node(None, None)
+
+    def move_next(self):
+        self.search()
+        num_rollouts, run_time = self.statistics()
+        print("Statistics: ", num_rollouts, "rollouts in", run_time, "seconds")
+        move = self.get_best_move()
+        self.register_move(move)
+        return move
 
     def statistics(self) -> tuple:
         return self.num_rollouts, self.run_time

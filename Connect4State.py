@@ -8,10 +8,10 @@ class Connect4State:
         self.height = [GameMeta.ROWS - 1] * GameMeta.COLS
         self.last_played = []
 
-    def get_board(self):
-        return deepcopy(self.board)
+    # def get_board(self):
+    #     return deepcopy(self.board)
 
-    def move(self, col):
+    def register_move(self, col):
         self.board[self.height[col]][col] = self.to_play
         self.last_played = [self.height[col], col]
         self.height[col] -= 1
@@ -103,12 +103,16 @@ class Connect4State:
 
         return GameMeta.OUTCOMES['one'] if self.check_win() == GameMeta.PLAYERS['one'] else GameMeta.OUTCOMES['two']
 
-    def print(self):
-        print('=============================')
+    def print_state(self):
+        print('=' * 29)
+        for x in range(7):
+            print(f'| {x}', end=' ')
+        
+        print('|')
+        print('=' * 29)
+        
+        for r in self.board:
+            print('|' + '|'.join([" X " if x == 1 else " O " if x == 2 else "   " for x in r]) + '|')
 
-        for row in range(GameMeta.ROWS):
-            for col in range(GameMeta.COLS):
-                print('| {} '.format('X' if self.board[row][col] == 1 else 'O' if self.board[row][col] == 2 else ' '), end='')
-            print('|')
+        print('=' * 29)
 
-        print('=============================')
