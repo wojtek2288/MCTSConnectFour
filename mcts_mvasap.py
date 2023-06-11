@@ -51,6 +51,6 @@ class MvasapMCTS(MCTS):
         children = node.children.values()
         max_value = max(children, key=lambda n: n.UCT()).UCT()
         max_nodes = [n for n in children if n.UCT() == max_value]
-        max_nodes_with_lowest_visited_count = min(max_nodes, key=lambda n: n.visited_count)
+        max_nodes_with_lowest_visited_count = max(max_nodes, key=lambda n: n.visited_count)
         return max_nodes_with_lowest_visited_count
 
