@@ -5,7 +5,7 @@ from copy import deepcopy
 from state import State, GameResults
 
 class Constants:
-    NUMBER_OF_ITERATIONS = 10000
+    NUMBER_OF_ITERATIONS = 5000
     EXPLORATION_COEFFICIENT = math.sqrt(2)
     INF = float('inf')
 

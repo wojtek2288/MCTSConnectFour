@@ -24,6 +24,8 @@ class State:
         row = [id for id, x in enumerate(self.board[:, col]) if x == BoardConstants.BLANK][-1]
         self.board[row][col] = self.player_to_play
         self.player_to_play = self.get_last_player()
+        self.last_last_row = self.last_row
+        self.last_last_column = self.last_column
         self.last_row = row
         self.last_column = col
 
@@ -58,6 +60,19 @@ class State:
             else:
                 count = 0
             if count >= sequence_number:
+                return True
+        return False
+    
+    def check_array_v2(self, array, player, sequence_number):
+        for i in range(len(array) - sequence_number):
+            player_count = 0
+            empty_count = 0
+            for j in range(sequence_number + 1):
+                if array[i + j] == player:
+                    player_count += 1
+                elif array[i + j] == 0:
+                    empty_count += 1
+            if player_count == sequence_number and empty_count == 1:
                 return True
         return False
 
@@ -119,6 +134,99 @@ class State:
             potential_wins = 0
 
         return potential_wins
+    
+    def get_winning_move(self, row, col, player):
+        # row
+        if self.check_array_v2(self.board[row], player, 3):
+            idx = col - 1
+            while idx >= 0 and (self.board[row][idx] == player or self.board[row][idx] == 0):
+                if self.board[row][idx] == 0:
+                    if row == BoardConstants.NUM_OF_ROWS - 1 or self.board[row + 1][idx] != 0:
+                        return idx
+                    else:
+                        break
+                idx -= 1
+            idx = col + 1
+            while idx < BoardConstants.NUM_OF_COLUMNS and (self.board[row][idx] == player or self.board[row][idx] == 0):
+                if self.board[row][idx] == 0:
+                    if row == BoardConstants.NUM_OF_ROWS - 1 or self.board[row + 1][idx] != 0:
+                        return idx
+                    else:
+                        break
+                idx += 1
+
+        # column
+        if self.check_array_v2(self.board[:, col], player, 3):
+            idx = row - 1
+            while idx >= 0 and (self.board[idx][col] == player or self.board[idx][col] == 0):
+                if self.board[idx][col] == 0:
+                    print("Got Column going up: " + str(col))
+                    return col
+                idx -= 1
+            idx = row + 1
+            while idx < BoardConstants.NUM_OF_ROWS and (self.board[idx][col] == player or self.board[idx][col] == 0):
+                if self.board[idx][col] == 0:
+                    print("Got Column going down: " + str(col))
+                    return col
+                idx += 1
+
+        # diagonal
+        res = self.check_diagonal(row, col, player)
+        if res != None:
+            return res
+        res = self.check_diagonal(row, col + 1, player)
+        if res != None:
+            return res
+
+        # antidiagonal
+        res = self.check_antidiagonal(row, col, player)
+        if res != None:
+            return res
+        res = self.check_antidiagonal(row, col - 1, player)
+        if res != None:
+            return res
+
+        return None
+    
+    def check_diagonal(self, row, col, player):
+        if self.check_array(self.board.diagonal(offset=col - row), player, 3):
+            idx = row - 1
+            j = col - 1
+            while idx >= 0 and j >= 0:
+                if self.board[idx][j] == 0 and self.board[idx + 1][j] != 0:
+                    print("Got diagonal going up: " + str(col))
+                    return j
+                idx -= 1
+                j -= 1
+            idx = row + 1
+            j = col + 1
+            while idx < BoardConstants.NUM_OF_ROWS and j < BoardConstants.NUM_OF_COLUMNS:
+                if self.board[idx][j] == 0 and (idx == BoardConstants.NUM_OF_ROWS - 1 or self.board[idx + 1][j] != 0):
+                    print("Got diagonal going down: " + str(col))
+                    return j
+                idx += 1
+                j += 1
+        return None
+
+    def check_antidiagonal(self, row, col, player):
+        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), player, 3):
+            idx = row - 1
+            j = col + 1
+            while idx >= 0 and j < BoardConstants.NUM_OF_COLUMNS:
+                if self.board[idx][j] == 0 and self.board[idx + 1][j] != 0:
+                    print("Got antidiagonal going up: " + str(col))
+                    return j
+                idx -= 1
+                j += 1
+            idx = row + 1
+            j = col - 1
+            while idx < BoardConstants.NUM_OF_ROWS and j >= 0:
+                if self.board[idx][j] == 0 and (idx == BoardConstants.NUM_OF_ROWS - 1 or self.board[idx + 1][j] != 0):
+                    print("Got antidiagonal going down: " + str(col))
+                    return j
+                idx += 1
+                j -= 1
+        return None
 
     def print_state(self):
         print('=' * 29)

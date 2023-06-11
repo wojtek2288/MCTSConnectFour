@@ -1,5 +1,4 @@
 from copy import deepcopy
-import math
 from mcts import MCTS, Constants, Node
 
 from state import State
@@ -12,13 +11,7 @@ class Connect4Node(Node):
         super().__init__(move, parent)
 
     def potencial_wins_heuristic(self, state):
-        heuristic_value = 0
-
-        for child in self.children.values():
-            potential_wins = state.count_potential_wins(child.move)
-            heuristic_value += potential_wins
-
-        return heuristic_value
+        return state.count_potential_wins(self.move)
 
 class Connect4MCTS(MCTS):
     def __init__(self, state=State(), seed=1):
