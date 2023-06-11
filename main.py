@@ -1,8 +1,7 @@
 import time
-import random
 import itertools
 import multiprocessing
-from mcts_connect4 import Connect4MCTS
+from mcts_connect4_opportunistic import Connect4OpportunisticMCTS
 
 from mcts_mvasap import MvasapMCTS
 
@@ -83,7 +82,7 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
     return 3
 
 def welcome_to_the_grand_tournament_champion():
-    competitors = [MCTS, MvasapMCTS, AmafMCTS]
+    competitors = [MCTS, MvasapMCTS, AmafMCTS, Connect4OpportunisticMCTS]
 
     pairings = list(itertools.combinations(competitors, 2))
     pairings = pairings + [[y, x] for [x, y] in pairings]
@@ -114,8 +113,9 @@ def run_pairing(pairing):
     return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3}'
 
 if __name__ == "__main__":
-    #welcome_to_the_grand_tournament_champion()
-    player_vs_computer(Connect4MCTS)
+    welcome_to_the_grand_tournament_champion()
+
+    # player_vs_computer(ConnectTest4MCTS)
     # alg = int(input("1 - MCTS, 2 - AMAF: "))
     # if alg == 1:
     #     print("MCTS")
