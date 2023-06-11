@@ -1,3 +1,4 @@
+import random
 import time
 import itertools
 import multiprocessing
@@ -134,8 +135,68 @@ def run_pairing(pairing):
     t2_avg = t2_sum / number_of_rounds
     return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3} \n {pairing[0].__name__} avarage time: {t1_avg}\n {pairing[1].__name__} avarage time: {t2_avg} \n'
 
+def computer_vs_random(algorithm1, seed, start_with_random = True):
+    state = State()
+    algorithm1 = algorithm1(state, seed)
+    random_wins = 0
+    algorithm_wins = 0
+    random_engine = random.Random(seed)
+
+    while not state.game_over():
+
+        if start_with_random:
+            columns = state.get_empty_columns()
+            move = random_engine.choice(columns)
+            state.register_move(move)
+            algorithm1.register_move(move)
+
+            if state.game_over():
+                random_wins += 1
+                break
+
+            algorithm_move = algorithm1.move_next()
+            state.register_move(algorithm_move)
+
+            if state.game_over():
+                algorithm_wins += 1
+                break
+        else:
+            algorithm_move = algorithm1.move_next()
+            state.register_move(algorithm_move)
+
+            if state.game_over():
+                algorithm_wins += 1
+                break
+
+            columns = state.get_empty_columns()
+            move = random_engine.choice(columns)
+            state.register_move(move)
+            algorithm1.register_move(move)
+
+            if state.game_over():
+                random_wins += 1
+                break
+    
+    return algorithm_wins, random_wins
+
 if __name__ == "__main__":
-    welcome_to_the_grand_tournament_champion()
+    alg_wins_sum = 0
+    random_wins_sum = 0
+
+    for i in range(10):
+        print("Iteration: " + str(i))
+        alg_wins, random_wins = computer_vs_random(MCTS, i)
+        alg_wins_sum += alg_wins
+        random_wins_sum += random_wins
+
+    for i in range(10):
+        print("Iteration: " + str(i))
+        alg_wins, random_wins = computer_vs_random(MCTS, i, False)
+        alg_wins_sum += alg_wins
+        random_wins_sum += random_wins
+
+    print("Alg wing: " + str(alg_wins_sum))
+    print("Random wins: " + str(random_wins_sum))
 
     # player_vs_computer(ConnectTest4MCTS)
     # alg = int(input("1 - MCTS, 2 - AMAF: "))
