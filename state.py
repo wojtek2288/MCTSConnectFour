@@ -48,7 +48,7 @@ class State:
 
         return GameResults.PLAYER_ONE_WON if winning_player == BoardConstants.PLAYER_ONE else GameResults.PLAYER_TWO_WON
     
-    def check_array(self, array, player):
+    def check_array(self, array, player, sequence_number):
         if(len(array) < 4):
             return False
         count = 0
@@ -57,7 +57,7 @@ class State:
                 count += 1
             else:
                 count = 0
-            if count >= 4:
+            if count >= sequence_number:
                 return True
         return False
 
@@ -65,22 +65,60 @@ class State:
         player = self.board[row][col]
 
         # row
-        if self.check_array(self.board[row], player):
+        if self.check_array(self.board[row], player, 4):
             return True
 
         # column
-        if self.check_array(self.board[:, col], player):
+        if self.check_array(self.board[:, col], player, 4):
             return True
 
         # diagonal
-        if self.check_array(self.board.diagonal(offset=col - row), player):
+        if self.check_array(self.board.diagonal(offset=col - row), player, 4):
             return True
         
         # antidiagonal
-        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), player):
+        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), player, 4):
             return True
 
         return False
+
+    def count_potential_wins(self, col):
+        row = [id for id, x in enumerate(self.board[:, col]) if x == BoardConstants.BLANK][-1]
+        potential_wins = 0
+
+        # row
+        if self.check_array(self.board[row], self.player_to_play, 3):
+            potential_wins += 1
+
+        # column
+        if self.check_array(self.board[:, col], self.player_to_play, 3):
+            potential_wins += 1
+
+        # diagonal
+        if self.check_array(self.board.diagonal(offset=col - row), self.player_to_play, 3):
+            potential_wins += 1
+        
+        # antidiagonal
+        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), self.player_to_play, 3):
+            potential_wins += 1
+
+        # row
+        if self.check_array(self.board[row], self.get_last_player(), 3):
+            potential_wins = 0
+
+        # column
+        if self.check_array(self.board[:, col], self.get_last_player(), 3):
+            potential_wins = 0
+
+        # diagonal
+        if self.check_array(self.board.diagonal(offset=col - row), self.get_last_player(), 3):
+            potential_wins = 0
+        
+        # antidiagonal
+        if self.check_array(np.fliplr(self.board).diagonal(offset=self.board.shape[1] - col - 1 - row), self.get_last_player(), 3):
+            potential_wins = 0
+
+        return potential_wins
 
     def print_state(self):
         print('=' * 29)

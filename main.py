@@ -2,6 +2,7 @@ import time
 import random
 import itertools
 import multiprocessing
+from mcts_connect4 import Connect4MCTS
 
 from mcts_mvasap import MvasapMCTS
 
@@ -113,8 +114,16 @@ def run_pairing(pairing):
     return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3}'
 
 if __name__ == "__main__":
-    welcome_to_the_grand_tournament_champion()
-    #computer_vs_computer(MCTS, MvasapMCTS)
+    #welcome_to_the_grand_tournament_champion()
+    player_vs_computer(Connect4MCTS)
+    # alg = int(input("1 - MCTS, 2 - AMAF: "))
+    # if alg == 1:
+    #     print("MCTS")
+    #     player_vs_computer(MCTS)
+    # elif alg == 2:
+    #     print("AMAF")
+    #     player_vs_computer(AmafMCTS)
+    # computer_vs_computer(MCTS, AmafMCTS, 1)
 
     # modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS]]
     # for id, mode in enumerate(modes):
