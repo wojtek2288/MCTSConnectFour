@@ -55,11 +55,20 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
     state = State()
     algorithm1 = algorithm1(state, seed)
     algorithm2 = algorithm2(state, seed)
+    algorithm1_time_sum = 0
+    algorithm2_time_sum = 0
+    algorithm1_counter = 0
+    algorithm2_counter = 0
 
     while not state.game_over():
         state.print_state()
-
+        start = time.process_time()
         move1 = algorithm1.move_next()
+        algorithm1_counter += 1
+        move_time = time.process_time() - start
+
+        algorithm1_time_sum += move_time
+
         algorithm2.register_move(move1)
         state.register_move(move1)
 
@@ -67,9 +76,15 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
 
         if state.game_over():
             print("Player one won!")
-            return 1
+            return 1, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
 
+        start = time.process_time()
         move2 = algorithm2.move_next()
+        algorithm2_counter += 1
+        move_time = time.process_time() - start
+
+        algorithm2_time_sum += move_time
+
         state.register_move(move2)
         algorithm1.register_move(move2)
 
@@ -78,11 +93,11 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
         if state.game_over():
             state.print_state()
             print("Player two won!")
-            return 2
-    return 3
+            return 2, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
+    return 3, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
 
 def welcome_to_the_grand_tournament_champion():
-    competitors = [MCTS, MvasapMCTS, AmafMCTS, Connect4OpportunisticMCTS]
+    competitors = [Connect4OpportunisticMCTS, MCTS, MvasapMCTS, AmafMCTS]
 
     pairings = list(itertools.combinations(competitors, 2))
     pairings = pairings + [[y, x] for [x, y] in pairings]
@@ -102,15 +117,22 @@ def run_pairing(pairing):
     res_1 = 0
     res_2 = 0
     res_3 = 0
+    t1_sum = 0
+    t2_sum = 0
     for i in range(number_of_rounds):
-        res = computer_vs_computer(pairing[0], pairing[1], i + pairing[2])
+        res, t1, t2 = computer_vs_computer(pairing[0], pairing[1], i + pairing[2])
+        t1_sum += t1
+        t2_sum += t2
         if res == 1:
             res_1 += 1
         elif res == 2:
             res_2 += 1
         else:
             res_3 += 1
-    return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3}'
+
+    t1_avg = t1_sum / number_of_rounds
+    t2_avg = t2_sum / number_of_rounds
+    return f'\n{pairing[0].__name__} vs {pairing[1].__name__}:\n{pairing[0].__name__} wins: {res_1}\n{pairing[1].__name__} wins: {res_2}\nDraws: {res_3} \n {pairing[0].__name__} avarage time: {t1_avg}\n {pairing[1].__name__} avarage time: {t2_avg} \n'
 
 if __name__ == "__main__":
     welcome_to_the_grand_tournament_champion()

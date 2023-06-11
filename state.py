@@ -19,6 +19,8 @@ class State:
         self.player_to_play = BoardConstants.PLAYER_ONE
         self.last_row = -1
         self.last_column = -1
+        self.last_last_column = -1
+        self.last_last_row = -1
 
     def register_move(self, col):
         row = [id for id, x in enumerate(self.board[:, col]) if x == BoardConstants.BLANK][-1]
@@ -136,6 +138,9 @@ class State:
         return potential_wins
     
     def get_winning_move(self, row, col, player):
+        if row == -1 or col == -1:
+            return None
+
         # row
         if self.check_array_v2(self.board[row], player, 3):
             idx = col - 1
