@@ -2,7 +2,7 @@ import random
 import time
 import itertools
 import multiprocessing
-from mcts_connect4_opportunistic import Connect4OpportunisticMCTS
+from mcts_connect4_opportunistic import Connect4HeuristicMCTS
 
 from mcts_mvasap import MvasapMCTS
 
@@ -14,8 +14,7 @@ def player_vs_computer(algorithm):
     state = State()
     algorithm = algorithm(state)
 
-    while not state.game_over():
-        print("Current state:")
+    while True:
         state.print_state()
 
         while True:
@@ -31,8 +30,8 @@ def player_vs_computer(algorithm):
 
         state.print_state()
 
-        if state.game_over():
-            print("Player one won!")
+        if state.end_state():
+            print("First player won.")
             break
 
         start = time.process_time()
@@ -47,9 +46,9 @@ def player_vs_computer(algorithm):
 
         print("Opponent's move choice: ", algorithm_move)
 
-        if state.game_over():
+        if state.end_state():
             state.print_state()
-            print("Player two won!")
+            print("Second player won.")
             break
 
 def computer_vs_computer(algorithm1, algorithm2, seed):
@@ -61,7 +60,7 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
     algorithm1_counter = 0
     algorithm2_counter = 0
 
-    while not state.game_over():
+    while True:
         state.print_state()
         start = time.process_time()
         move1 = algorithm1.move_next()
@@ -75,8 +74,8 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
 
         state.print_state()
 
-        if state.game_over():
-            print("Player one won!")
+        if state.end_state():
+            print("First player won.")
             return 1, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
 
         start = time.process_time()
@@ -89,16 +88,14 @@ def computer_vs_computer(algorithm1, algorithm2, seed):
         state.register_move(move2)
         algorithm1.register_move(move2)
 
-        #print("Opponent's move choice: ", algorithm_move)
-
-        if state.game_over():
+        if state.end_state():
             state.print_state()
-            print("Player two won!")
+            print("Second player won.")
             return 2, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
     return 3, algorithm1_time_sum / algorithm1_counter, algorithm2_time_sum / algorithm2_counter
 
 def welcome_to_the_grand_tournament_champion():
-    competitors = [Connect4OpportunisticMCTS, MCTS, MvasapMCTS, AmafMCTS]
+    competitors = [Connect4HeuristicMCTS, MCTS, MvasapMCTS, AmafMCTS]
 
     pairings = list(itertools.combinations(competitors, 2))
     pairings = pairings + [[y, x] for [x, y] in pairings]
@@ -142,7 +139,7 @@ def computer_vs_random(algorithm1, seed, start_with_random = True):
     algorithm_wins = 0
     random_engine = random.Random(seed)
 
-    while not state.game_over():
+    while True:
 
         if start_with_random:
             columns = state.get_empty_columns()
@@ -150,21 +147,21 @@ def computer_vs_random(algorithm1, seed, start_with_random = True):
             state.register_move(move)
             algorithm1.register_move(move)
 
-            if state.game_over():
+            if state.end_state():
                 random_wins += 1
                 break
 
             algorithm_move = algorithm1.move_next()
             state.register_move(algorithm_move)
 
-            if state.game_over():
+            if state.end_state():
                 algorithm_wins += 1
                 break
         else:
             algorithm_move = algorithm1.move_next()
             state.register_move(algorithm_move)
 
-            if state.game_over():
+            if state.end_state():
                 algorithm_wins += 1
                 break
 
@@ -173,48 +170,47 @@ def computer_vs_random(algorithm1, seed, start_with_random = True):
             state.register_move(move)
             algorithm1.register_move(move)
 
-            if state.game_over():
+            if state.end_state():
                 random_wins += 1
                 break
     
     return algorithm_wins, random_wins
 
 if __name__ == "__main__":
-    alg_wins_sum = 0
-    random_wins_sum = 0
+    print("Please select operation mode: ")
+    print("1. Player vs computer.")
+    print("2. Simulate computer tournament.")
+    choice = int(input("Choice: "))
 
-    for i in range(10):
-        print("Iteration: " + str(i))
-        alg_wins, random_wins = computer_vs_random(MCTS, i)
-        alg_wins_sum += alg_wins
-        random_wins_sum += random_wins
+    if choice == 1:
+        modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS], ["Player vs MVASAP AI", MvasapMCTS], ["Player vs Heuristic AI", Connect4HeuristicMCTS]]
+        for id, mode in enumerate(modes):
+            print(f'{id + 1}. {mode[0]}')
 
-    for i in range(10):
-        print("Iteration: " + str(i))
-        alg_wins, random_wins = computer_vs_random(MCTS, i, False)
-        alg_wins_sum += alg_wins
-        random_wins_sum += random_wins
+        choice = int(input("Please choose game mode: "))
 
-    print("Alg wing: " + str(alg_wins_sum))
-    print("Random wins: " + str(random_wins_sum))
+        if choice not in range(len(modes) + 1):
+            print("Incorrect game mode selected. Exiting.")
+        
+        player_vs_computer(modes[choice - 1][1])
+    elif choice == 2:
+        welcome_to_the_grand_tournament_champion()
 
-    # player_vs_computer(ConnectTest4MCTS)
-    # alg = int(input("1 - MCTS, 2 - AMAF: "))
-    # if alg == 1:
-    #     print("MCTS")
-    #     player_vs_computer(MCTS)
-    # elif alg == 2:
-    #     print("AMAF")
-    #     player_vs_computer(AmafMCTS)
-    # computer_vs_computer(MCTS, AmafMCTS, 1)
+    # # driver code for algorithm vs random
+    # alg_wins_sum = 0
+    # random_wins_sum = 0
 
-    # modes = [["Player vs MCTS AI", MCTS], ["Player vs AmafMCTS AI", AmafMCTS]]
-    # for id, mode in enumerate(modes):
-    #     print(f'{id + 1}. {mode[0]}')
+    # for i in range(10):
+    #     print("Iteration: " + str(i))
+    #     alg_wins, random_wins = computer_vs_random(MCTS, i)
+    #     alg_wins_sum += alg_wins
+    #     random_wins_sum += random_wins
 
-    # choice = int(input("Please choose game mode: "))
+    # for i in range(10):
+    #     print("Iteration: " + str(i))
+    #     alg_wins, random_wins = computer_vs_random(MCTS, i, False)
+    #     alg_wins_sum += alg_wins
+    #     random_wins_sum += random_wins
 
-    # if choice not in range(len(modes) + 1):
-    #     print("Incorrect game mode selected. Exiting.")
-    
-    # player_vs_computer(modes[choice - 1][1])
+    # print("Alg wing: " + str(alg_wins_sum))
+    # print("Random wins: " + str(random_wins_sum))
